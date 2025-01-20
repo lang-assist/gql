@@ -1,0 +1,94 @@
+mutation CreateJourney($input: CreateJourneyInput!) {
+  user {
+    create_journey(input: $input) {
+      journey {
+        ...DetailedJourney
+      }
+      path {
+        ...DetailedPath
+      }
+      materials {
+        ...DetailedMaterial
+      }
+    }
+  }
+}
+
+mutation DeleteJourney($id: ID!) {
+  user {
+    delete_journey(id: $id)
+  }
+}
+
+mutation UpdateJourney($id: ID!, $input: UpdateJourneyInput!) {
+  user {
+    update_journey(id: $id, input: $input) {
+      ...DetailedJourney
+    }
+  }
+}
+
+fragment StartInitialResponse on StartInitialResponse {
+  path {
+    ...DetailedPath
+  }
+  materials {
+    ...DetailedMaterial
+  }
+}
+
+mutation UnUnderstoodQuestions($journeyId: ID!, $pathId: ID!) {
+  user {
+    unUnderstoodQuestions(journeyId: $journeyId, pathId: $pathId) {
+      ...StartInitialResponse
+    }
+  }
+}
+
+mutation AnswerMaterial($input: AnswerMaterialInput!) {
+  user {
+    answer_material(input: $input) {
+      ...AnswerMaterialResponse
+    }
+  }
+}
+
+mutation CreatePath($input: CreatePathInput!) {
+  user {
+    create_path(input: $input) {
+      ...DetailedPath
+    }
+  }
+}
+
+mutation AddUserInput($input: AddUserInputInput!) {
+  user {
+    add_user_input(input: $input) {
+      ...ConversationTurn
+    }
+  }
+}
+
+mutation ClearConversation($materialId: ID!) {
+  user {
+    clear_conversation(materialId: $materialId)
+  }
+}
+
+mutation RemoveConversationAssistant {
+  user {
+    remove_conversation_assistant
+  }
+}
+
+mutation DeleteTemp($num: Int!) {
+  user {
+    delete_temp(num: $num)
+  }
+}
+
+mutation ResetJourney($id: ID!) {
+  user {
+    reset_journey(id: $id)
+  }
+}

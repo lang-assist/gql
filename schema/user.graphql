@@ -1,0 +1,101 @@
+# import * from "./types.graphql"
+
+input CreateJourneyInput {
+  to: SupportedLanguage!
+  name: String!
+  avatar: UploadingHsl!
+  model: String!
+}
+
+input UpdateJourneyInput {
+  name: String
+  avatar: String
+}
+
+type InitialPathResponse {
+  path: UserPath!
+  materials: [Material!]!
+}
+
+type UserQuery {
+  my_journeys: JourneyConnection!
+  journey(id: ID!): Journey
+  path(id: ID!): UserPath
+  material(id: ID!): Material
+  initial_path(journeyId: ID!): InitialPathResponse
+  conversation_turns(materialId: ID!): [ConversationTurn!]!
+}
+
+input CreateMaterialInput {
+  journeyId: ID!
+  pathId: ID!
+}
+
+input AnswerMaterialInput {
+  materialId: ID!
+  answer: JSON!
+}
+
+input CreatePathInput {
+  journeyId: ID!
+  type: PathType!
+  profession: String
+}
+
+type StartInitialResponse {
+  path: UserPath!
+  materials: [Material!]!
+}
+
+type CreateJourneyResponse {
+  journey: Journey!
+  path: UserPath!
+  materials: [Material!]!
+}
+
+input StartConversationInput {
+  materialId: ID!
+}
+
+input AddUserInputInput {
+  materialId: ID!
+  text: String
+  audio_ID: ID
+}
+
+enum AnswerMaterialResponseNext {
+  CREATING_NEW
+  INITIAL_END
+  INITIAL_CONTINUE
+}
+
+type AnswerMaterialResponse {
+  next: AnswerMaterialResponseNext!
+  newPath: ID
+  newMaterial: ID
+}
+
+type UserMutation {
+  create_journey(input: CreateJourneyInput!): CreateJourneyResponse!
+  delete_journey(id: ID!): Boolean! # unimplemented
+  update_journey(id: ID!, input: UpdateJourneyInput!): Journey! # unimplemented
+  unUnderstoodQuestions(journeyId: ID!, pathId: ID!): StartInitialResponse!
+  create_path(input: CreatePathInput!): UserPath! # unimplemented
+  answer_material(input: AnswerMaterialInput!): AnswerMaterialResponse!
+
+  add_user_input(input: AddUserInputInput!): ConversationTurn!
+
+  """
+  Delete template content.
+  """
+  delete_temp(num: Int!): Boolean!
+
+  """
+  Reset journey.
+  """
+  reset_journey(id: ID!): Boolean!
+
+  clear_conversation(materialId: ID!): Boolean!
+
+  remove_conversation_assistant: Boolean!
+}

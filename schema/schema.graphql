@@ -1,0 +1,35 @@
+# import * from "./admin.graphql"
+# import * from "./auth.graphql"
+# import * from "./public.graphql"
+# import * from "./user.graphql"
+# import * from "./types.graphql"
+
+type Query {
+  admin: AdminQuery! @domain(domain: admin) @resolver(permissions: ["/admin/#"])
+  auth: AuthQuery! @domain(domain: auth)
+  public: PublicQuery! @domain(domain: public)
+  user: UserQuery! @domain(domain: user) @resolver(permissions: ["/client/#"])
+}
+
+type Mutation {
+  admin: AdminMutation!
+    @domain(domain: admin)
+    @resolver(permissions: ["/admin/#"])
+  auth: AuthMutation! @domain(domain: auth)
+  user: UserMutation!
+    @domain(domain: user)
+    @resolver(permissions: ["/client/#"])
+  public: PublicMutation! @domain(domain: public)
+}
+
+type Subscription {
+  start_conversation(materialId: ID!): ConversationUpdate!
+    @domain(domain: user)
+    @resolver(permissions: ["/client/#"])
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}

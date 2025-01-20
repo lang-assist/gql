@@ -1,0 +1,75 @@
+query GetMyJourneys {
+  user {
+    my_journeys {
+      items {
+        ...Journey
+      }
+    }
+  }
+}
+
+query GetJourneyDetailed($id: ID!) {
+  user {
+    journey(id: $id) {
+      ...DetailedJourney
+    }
+  }
+}
+
+query GetPath($id: ID!) {
+  user {
+    path(id: $id) {
+      ...DetailedPath
+    }
+  }
+}
+
+query GetPathMaterials($id: ID!, $pagination: PaginationInput) {
+  user {
+    path(id: $id) {
+      materials(pagination: $pagination) {
+        items {
+          ...Material
+        }
+      }
+    }
+  }
+}
+
+query GetMaterialDetails($id: ID!) {
+  user {
+    material(id: $id) {
+      ...DetailedMaterial
+    }
+  }
+}
+fragment InitialPathResponse on InitialPathResponse {
+  path {
+    ...DetailedPath
+  }
+  materials {
+    ...DetailedMaterial
+  }
+}
+
+query GetInitialPath($journeyId: ID!) {
+  user {
+    initial_path(journeyId: $journeyId) {
+      ...InitialPathResponse
+    }
+  }
+}
+
+subscription StartConversation($materialId: ID!) {
+  start_conversation(materialId: $materialId) {
+    ...ConversationUpdate
+  }
+}
+
+query GetConversationTurns($materialId: ID!) {
+  user {
+    conversation_turns(materialId: $materialId) {
+      ...ConversationTurn
+    }
+  }
+}

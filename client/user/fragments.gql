@@ -1,0 +1,216 @@
+fragment Journey on Journey {
+  id
+  name
+  avatar
+  to
+  lastStudyDate
+  createdAt
+  updatedAt
+}
+
+fragment DetailedJourney on Journey {
+  ...Journey
+  paths {
+    ...DetailedPath
+  }
+}
+
+fragment DetailedPath on UserPath {
+  id
+  name
+  description
+  isMain
+  isActive
+  type
+  profession
+}
+
+fragment MaterialMetadata on MaterialMetadata {
+  title
+  description
+  avatar
+  estimatedDuration
+  focusAreas
+  focusSkills
+}
+
+fragment Material on Material {
+  id
+  metadata {
+    ...MaterialMetadata
+  }
+  status
+  createdAt
+  completedAt
+}
+
+fragment UserAnswer on UserAnswer {
+  id
+  createdAt
+  answers
+}
+
+fragment DetailedMaterial on Material {
+  ...Material
+  details {
+    ...MaterialDetails
+  }
+  answer {
+    ...UserAnswer
+  }
+  turns(pagination: { limit: 1000 }) {
+    items {
+      ...ConversationTurn
+    }
+  }
+}
+
+fragment StoryDetails on StoryDetails {
+  text
+  audioUrl
+  vocabulary
+  comprehensionQuestions
+}
+
+fragment QuizPreludeItem on QuizPreludeItem {
+  type
+  content
+  hasPicture
+  pictureId
+}
+
+fragment QuizPrelude on QuizPrelude {
+  id
+  parts {
+    ...QuizPreludeItem
+  }
+}
+fragment ExerciseDetails on ExerciseDetails {
+  exerciseType
+  instructions
+}
+
+fragment QuestionItem on QuestionItem {
+  id
+  text
+  pictureId
+  hasPicture
+}
+
+fragment QuizQuestion on QuizQuestion {
+  id
+  type
+  question
+  preludeID
+  choices {
+    ...QuestionItem
+  }
+  items {
+    ...QuestionItem
+  }
+  secondItems {
+    ...QuestionItem
+  }
+}
+
+fragment ConversationCharacter on ConversationCharacter {
+  name
+  description
+  voice
+  avatar
+  gender
+}
+
+fragment ConversationDetails on ConversationDetails {
+  instructions
+  characters {
+    ...ConversationCharacter
+  }
+}
+fragment QuizDetails on QuizDetails {
+  preludes {
+    ...QuizPrelude
+  }
+  questions {
+    ...QuizQuestion
+  }
+}
+fragment VocabularyDetails on VocabularyDetails {
+  words
+  sentences
+}
+fragment GrammarDetails on GrammarDetails {
+  grammarRules
+}
+fragment SpeechDetails on SpeechDetails {
+  instructions
+  speechType
+}
+fragment ListeningDetails on ListeningDetails {
+  instructions
+  listeningType
+}
+fragment ReadingDetails on ReadingDetails {
+  instructions
+  readingType
+}
+fragment WritingDetails on WritingDetails {
+  instructions
+  writingType
+}
+
+fragment MaterialDetails on MaterialDetails {
+  type
+  ... on StoryDetails {
+    ...StoryDetails
+  }
+  ... on ExerciseDetails {
+    ...ExerciseDetails
+  }
+  ... on QuizDetails {
+    ...QuizDetails
+  }
+  ... on ConversationDetails {
+    ...ConversationDetails
+  }
+  ... on VocabularyDetails {
+    ...VocabularyDetails
+  }
+  ... on GrammarDetails {
+    ...GrammarDetails
+  }
+  ... on SpeechDetails {
+    ...SpeechDetails
+  }
+  ... on ListeningDetails {
+    ...ListeningDetails
+  }
+  ... on ReadingDetails {
+    ...ReadingDetails
+  }
+  ... on WritingDetails {
+    ...WritingDetails
+  }
+}
+
+fragment ConversationTurn on ConversationTurn {
+  id
+  createdAt
+  audio_ID
+  character
+  text
+  nextTurn
+}
+
+fragment ConversationUpdate on ConversationUpdate {
+  turn {
+    ...ConversationTurn
+  }
+  nextTurn
+}
+
+fragment AnswerMaterialResponse on AnswerMaterialResponse {
+  next
+  newPath
+  newMaterial
+}
