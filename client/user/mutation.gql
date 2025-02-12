@@ -92,3 +92,27 @@ mutation ResetJourney($id: ID!) {
     reset_journey(id: $id)
   }
 }
+
+mutation PrepareMaterial($materialId: ID!) {
+  user {
+    prepare_material(materialId: $materialId) {
+      ...DetailedMaterial
+    }
+  }
+}
+
+mutation RegenerateMaterial($materialId: ID!) {
+  user {
+    regenerate_material(materialId: $materialId) {
+      ...DetailedMaterial
+    }
+  }
+}
+
+mutation GenMaterial($input: GenMaterialInput!) {
+  user {
+    gen_material(input: $input) {
+      ...DetailedMaterial
+    }
+  }
+}

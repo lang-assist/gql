@@ -39,9 +39,36 @@ fragment Material on Material {
   metadata {
     ...MaterialMetadata
   }
+  type
   status
   createdAt
   completedAt
+  unseenAiFeedbacks
+}
+
+fragment AIFeedbackPart on AIFeedbackPart {
+  type
+  text
+}
+
+fragment AIFeedbackInterface on AIFeedbackInterface {
+  type
+  question
+  turnIndex
+  parts {
+    ...AIFeedbackPart
+  }
+}
+
+fragment AIFeedback on AIFeedback {
+  id
+  createdAt
+  feedback {
+    ...AIFeedbackInterface
+  }
+  material_ID
+  user_ID
+  seen
 }
 
 fragment UserAnswer on UserAnswer {
@@ -58,6 +85,11 @@ fragment DetailedMaterial on Material {
   answer {
     ...UserAnswer
   }
+  aiFeedbacks(pagination: { limit: 1000 }) {
+    items {
+      ...AIFeedback
+    }
+  }
   turns(pagination: { limit: 1000 }) {
     items {
       ...ConversationTurn
@@ -65,11 +97,22 @@ fragment DetailedMaterial on Material {
   }
 }
 
+fragment StoryPart on StoryPart {
+  type
+  ssml
+  hasPicture
+  question {
+    ...QuizQuestion
+  }
+
+  audioId
+  pictureId
+}
+
 fragment StoryDetails on StoryDetails {
-  text
-  audioUrl
-  vocabulary
-  comprehensionQuestions
+  parts {
+    ...StoryPart
+  }
 }
 
 fragment QuizPreludeItem on QuizPreludeItem {
@@ -77,6 +120,7 @@ fragment QuizPreludeItem on QuizPreludeItem {
   content
   hasPicture
   pictureId
+  audioId
 }
 
 fragment QuizPrelude on QuizPrelude {
@@ -84,10 +128,6 @@ fragment QuizPrelude on QuizPrelude {
   parts {
     ...QuizPreludeItem
   }
-}
-fragment ExerciseDetails on ExerciseDetails {
-  exerciseType
-  instructions
 }
 
 fragment QuestionItem on QuestionItem {
@@ -135,61 +175,18 @@ fragment QuizDetails on QuizDetails {
     ...QuizQuestion
   }
 }
-fragment VocabularyDetails on VocabularyDetails {
-  words
-  sentences
-}
-fragment GrammarDetails on GrammarDetails {
-  grammarRules
-}
-fragment SpeechDetails on SpeechDetails {
-  instructions
-  speechType
-}
-fragment ListeningDetails on ListeningDetails {
-  instructions
-  listeningType
-}
-fragment ReadingDetails on ReadingDetails {
-  instructions
-  readingType
-}
-fragment WritingDetails on WritingDetails {
-  instructions
-  writingType
-}
 
 fragment MaterialDetails on MaterialDetails {
   type
   ... on StoryDetails {
     ...StoryDetails
   }
-  ... on ExerciseDetails {
-    ...ExerciseDetails
-  }
+
   ... on QuizDetails {
     ...QuizDetails
   }
   ... on ConversationDetails {
     ...ConversationDetails
-  }
-  ... on VocabularyDetails {
-    ...VocabularyDetails
-  }
-  ... on GrammarDetails {
-    ...GrammarDetails
-  }
-  ... on SpeechDetails {
-    ...SpeechDetails
-  }
-  ... on ListeningDetails {
-    ...ListeningDetails
-  }
-  ... on ReadingDetails {
-    ...ReadingDetails
-  }
-  ... on WritingDetails {
-    ...WritingDetails
   }
 }
 
@@ -213,4 +210,33 @@ fragment AnswerMaterialResponse on AnswerMaterialResponse {
   next
   newPath
   newMaterial
+}
+
+fragment UserDocExplanation on UserDocExplanation {
+  type
+  ui
+  text
+  pictureId
+  audioId
+}
+fragment UserDocTemplate on UserDocTemplate {
+  id
+  title
+  description
+  includes
+  explanations {
+    ...UserDocExplanation
+  }
+}
+
+fragment UserDoc on UserDoc {
+  id
+  createdAt
+  updatedAt
+  template_ID
+  user_ID
+  journey_ID
+  template {
+    ...UserDocTemplate
+  }
 }

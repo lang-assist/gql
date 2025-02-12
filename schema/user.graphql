@@ -17,13 +17,24 @@ type InitialPathResponse {
   materials: [Material!]!
 }
 
+input DocumentationInput {
+  journeyId: ID!
+  title: String!
+  searchTerm: String!
+}
+
 type UserQuery {
   my_journeys: JourneyConnection!
   journey(id: ID!): Journey
   path(id: ID!): UserPath
+  path_materials(id: ID!, pagination: PaginationInput): MaterialConnection!
   material(id: ID!): Material
   initial_path(journeyId: ID!): InitialPathResponse
   conversation_turns(materialId: ID!): [ConversationTurn!]!
+  parsed_units(text: String!, journeyId: ID!): LinguisticUnitSet!
+  documentation(input: DocumentationInput!): UserDoc!
+  journey_docs(journeyId: ID!, pagination: PaginationInput): UserDocConnection!
+  material_feedbacks(materialId: ID!): [AIFeedback!]!
 }
 
 input CreateMaterialInput {
@@ -75,8 +86,15 @@ type AnswerMaterialResponse {
   newMaterial: ID
 }
 
+input GenMaterialInput {
+  journeyId: ID!
+  pathId: ID!
+  type: MaterialType!
+}
+
 type UserMutation {
   create_journey(input: CreateJourneyInput!): CreateJourneyResponse!
+
   delete_journey(id: ID!): Boolean! # unimplemented
   update_journey(id: ID!, input: UpdateJourneyInput!): Journey! # unimplemented
   unUnderstoodQuestions(journeyId: ID!, pathId: ID!): StartInitialResponse!
@@ -98,4 +116,10 @@ type UserMutation {
   clear_conversation(materialId: ID!): Boolean!
 
   remove_conversation_assistant: Boolean!
+
+  prepare_material(materialId: ID!): Material!
+
+  regenerate_material(materialId: ID!): Material!
+
+  gen_material(input: GenMaterialInput!): Material!
 }

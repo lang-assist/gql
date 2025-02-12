@@ -26,12 +26,21 @@ query GetPath($id: ID!) {
 
 query GetPathMaterials($id: ID!, $pagination: PaginationInput) {
   user {
-    path(id: $id) {
-      materials(pagination: $pagination) {
-        items {
-          ...Material
-        }
+    path_materials(id: $id, pagination: $pagination) {
+      items {
+        ...Material
       }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+query GetMaterial($id: ID!) {
+  user {
+    material(id: $id) {
+      ...Material
     }
   }
 }
@@ -70,6 +79,38 @@ query GetConversationTurns($materialId: ID!) {
   user {
     conversation_turns(materialId: $materialId) {
       ...ConversationTurn
+    }
+  }
+}
+
+query ParsedUnits($text: String!, $journeyId: ID!) {
+  user {
+    parsed_units(text: $text, journeyId: $journeyId)
+  }
+}
+
+query GetDocumentation($input: DocumentationInput!) {
+  user {
+    documentation(input: $input) {
+      ...UserDoc
+    }
+  }
+}
+
+query GetJourneyDocs($journeyId: ID!, $pagination: PaginationInput) {
+  user {
+    journey_docs(journeyId: $journeyId, pagination: $pagination) {
+      items {
+        ...UserDoc
+      }
+    }
+  }
+}
+
+query GetMaterialFeedbacks($pathId: ID!, $materialId: ID!) {
+  user {
+    material_feedbacks(pathId: $pathId, materialId: $materialId) {
+      ...AIFeedback
     }
   }
 }

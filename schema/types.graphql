@@ -333,7 +333,7 @@ type UserPath implements Node {
 
   materials(pagination: PaginationInput): MaterialConnection!
     @resolver(permissions: ["/client/@user_ID"])
-    @foreign_connection(collection: "materials", foreignField: "userPath_ID")
+    @foreign_connection(collection: "materials", foreignField: "path_ID")
 
   # Profesyonel alan adı (örn: "Software Development", "Gastronomy")
   name: String!
@@ -392,30 +392,21 @@ type UserPathConnection implements Connection {
 # İçerik tipleri
 enum MaterialType {
   STORY # Hikayeler
-  EXERCISE # Alıştırmalar
   QUIZ # Testler
   CONVERSATION # Konuşma pratiği
-  VOCABULARY # Kelime çalışması
-  GRAMMAR # Gramer dökümanları
-  SPEECH # Konuşma pratiği
-  LISTENING # Dinleme pratiği
-  READING # Okuma pratiği
-  WRITING # Yazma pratiği
+  UNKNOWN # Bilinmiyor
 }
 
 # İçerik durumu
 enum MaterialStatus {
+  CREATING # Oluşturuluyor
   PENDING # Henüz başlanmamış
-  IN_PROGRESS # Devam ediyor
-  WAITING_FOR_APPROVAL # Yönetici tarafından onaylanması gerekiyor
-  WAITING_FOR_REVIEW # Kullanıcı tarafından incelemesi gerekiyor
-  REJECTED # Yönetici tarafından reddedildi
   COMPLETED # Tamamlanmış
-  PREPARING # Konuşma oluşturuluyor
+  PREPARING # Hazırlanıyor
 }
 
-scalar Term
-scalar TermSet
+scalar LinguisticUnit
+scalar LinguisticUnitSet
 
 # Temel içerik tipi
 type Material implements Node {
@@ -446,11 +437,19 @@ type Material implements Node {
   completedAt: DateTime
 
   # İçerik meta verileri (başlık, açıklama vs)
-  metadata: MaterialMetadata!
+  metadata: MaterialMetadata
 
-  details: MaterialDetails!
+  details: MaterialDetails
+
+  type: MaterialType
 
   answer: UserAnswer @resolver(permissions: ["/client/@user_ID"])
+
+  aiFeedbacks(pagination: PaginationInput): AIFeedbackConnection!
+    @resolver(permissions: ["/client/@user_ID"])
+    @foreign_connection(collection: "ai-feedback", foreignField: "material_ID")
+
+  unseenAiFeedbacks: Int! @resolver(permissions: ["/client/@user_ID"])
 
   turns(pagination: PaginationInput): ConversationTurnConnection!
     @resolver(permissions: [])
@@ -460,8 +459,15 @@ type Material implements Node {
     )
 }
 
+type MaterialConnection implements Connection {
+  pageInfo: PageInfo!
+  items: [Material!]!
+  groups: GroupInfo
+}
+
 type UserAnswer implements Node {
   id: ID!
+
   user: User!
     @reference(collection: "users")
     @resolver(permissions: ["/client/@user_ID"])
@@ -497,21 +503,26 @@ interface MaterialDetails {
   type: MaterialType!
 }
 
+enum StoryPartType {
+  NARRATIVE
+  PICTURE
+  AUDIO
+  QUESTION
+}
+
+type StoryPart {
+  type: StoryPartType!
+  question: QuizQuestion
+  hasPicture: Boolean!
+  pictureId: ID
+  audioId: ID
+  ssml: String
+}
+
 # Hikaye detayları
 type StoryDetails implements MaterialDetails {
   type: MaterialType!
-
-  text: TermSet!
-  audioUrl: String
-  vocabulary: TermSet!
-  comprehensionQuestions: TermSet!
-}
-
-# Alıştırma detayları
-type ExerciseDetails implements MaterialDetails {
-  type: MaterialType!
-  instructions: TermSet!
-  exerciseType: String! # fill-in-blanks, matching, etc.
+  parts: [StoryPart!]!
 }
 
 type QuizDetails implements MaterialDetails {
@@ -523,13 +534,15 @@ type QuizDetails implements MaterialDetails {
 enum QuizPreludeItemType {
   STORY
   PICTURE
+  AUDIO
 }
 
 type QuizPreludeItem {
   type: QuizPreludeItemType!
-  content: TermSet
+  content: LinguisticUnitSet
   hasPicture: Boolean!
   pictureId: ID
+  audioId: ID
 }
 
 type QuizPrelude {
@@ -546,20 +559,21 @@ enum QuizQuestionType {
   MATCHING # match the items
   ORDERING # order the items
   TEXT_INPUT_WRITE # text input with writing
-  TEXT_INPUT_CHOICE # text input with options
+  RECORD # record the user's voice
 }
 
 type QuestionItem {
   id: ID!
-  text: TermSet!
+  text: LinguisticUnitSet!
   pictureId: ID
   hasPicture: Boolean!
+  audioId: ID
 }
 
 type QuizQuestion {
   id: String!
   type: QuizQuestionType!
-  question: TermSet!
+  question: LinguisticUnitSet!
   preludeID: String # For example, if telling a story at the beginning and asking questions about it.
   choices: [QuestionItem!]
   items: [QuestionItem!] # for matching and ordering
@@ -576,48 +590,8 @@ type ConversationCharacter {
 
 type ConversationDetails implements MaterialDetails {
   type: MaterialType!
-  instructions: TermSet!
+  instructions: LinguisticUnitSet!
   characters: [ConversationCharacter!]!
-}
-
-type VocabularyDetails implements MaterialDetails {
-  type: MaterialType!
-
-  words: TermSet!
-  sentences: TermSet!
-}
-
-type GrammarDetails implements MaterialDetails {
-  type: MaterialType!
-
-  grammarRules: TermSet!
-}
-
-type SpeechDetails implements MaterialDetails {
-  type: MaterialType!
-
-  instructions: TermSet!
-  speechType: String! # one-to-one, group, etc.
-}
-
-type ListeningDetails implements MaterialDetails {
-  type: MaterialType!
-
-  instructions: TermSet!
-  listeningType: String! # one-to-one, group, etc.
-}
-
-type ReadingDetails implements MaterialDetails {
-  type: MaterialType!
-
-  instructions: TermSet!
-  readingType: String! # one-to-one, group, etc.
-}
-
-type WritingDetails implements MaterialDetails {
-  type: MaterialType!
-  instructions: TermSet!
-  writingType: String! # one-to-one, group, etc.
 }
 
 type MaterialConnection implements Connection {
@@ -637,7 +611,7 @@ type ConversationTurn implements Node {
 
   ssml: String # if turn is user, ssml is null
   character: String! # user or other characters.
-  text: TermSet # if turn is user, text is null
+  text: LinguisticUnitSet # if turn is user, text is null
   createdAt: DateTime!
   audio_ID: ID # if turn is not user, audio_ID is null
   analyze: JSON # if turn is user, analyze is not null
@@ -653,4 +627,109 @@ type ConversationTurnConnection implements Connection {
 type ConversationUpdate {
   turn: ConversationTurn
   nextTurn: String
+}
+
+enum AIFeedbackType {
+  CORRECTION
+  RECOMMENDATION
+  EXPLANATION
+  PRACTICE_TIP
+  GENERAL_FEEDBACK
+  OTHER
+}
+
+enum AIFeedbackPartType {
+  WRONG
+  RIGHT
+  TIP
+  EXPLANATION
+  OTHER
+}
+
+type AIFeedbackPart {
+  type: AIFeedbackPartType!
+  text: String!
+}
+
+type AIFeedbackInterface {
+  type: AIFeedbackType!
+  question: String
+  turnIndex: Int
+  parts: [AIFeedbackPart!]!
+}
+
+type AIFeedback implements Node {
+  id: ID!
+  createdAt: DateTime!
+
+  material: Material
+    @resolver(permissions: ["/client/@user_ID"])
+    @reference(collection: "materials")
+  material_ID: ID
+
+  user: User
+    @resolver(permissions: ["/client/@user_ID"])
+    @reference(collection: "users")
+  user_ID: ID!
+
+  feedback: AIFeedbackInterface!
+
+  seen: Boolean!
+}
+
+type AIFeedbackConnection implements Connection {
+  pageInfo: PageInfo!
+  items: [AIFeedback!]!
+  groups: GroupInfo
+}
+
+enum UserDocExplanationType {
+  text
+  picture
+  audio
+}
+
+enum UserDocExplanationUI {
+  tip
+  example
+  explanation
+  note
+  warning
+  error
+  right
+}
+
+type UserDocExplanation {
+  type: UserDocExplanationType!
+  ui: UserDocExplanationUI
+  text: String
+  pictureId: ID
+  audioId: ID
+}
+
+type UserDoc implements Node {
+  id: ID!
+  template_ID: ID!
+  user_ID: ID!
+  journey_ID: ID!
+
+  createdAt: DateTime!
+  updatedAt: DateTime!
+
+  template: UserDocTemplate!
+    @resolver(permissions: ["/client/@user_ID"])
+    @reference(collection: "doc-template")
+}
+
+type UserDocTemplate implements Node {
+  id: ID!
+  title: String!
+  description: String!
+  includes: [String!]!
+  explanations: [UserDocExplanation!]!
+}
+type UserDocConnection implements Connection {
+  pageInfo: PageInfo!
+  items: [UserDoc!]!
+  groups: GroupInfo
 }
