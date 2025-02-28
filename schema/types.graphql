@@ -317,23 +317,11 @@ enum PathType {
 }
 
 # Kullanıcının seçtiği profesyonel alanlar ve bu alanlardaki ilerlemesi
-type UserPath implements Node {
-  id: ID!
-
-  user: User!
-    @resolver(permissions: ["/client/@user_ID"])
-    @reference(collection: "users")
-  user_ID: ID!
-
-  # Hangi journey'ye ait
-  journey: Journey!
-    @resolver(permissions: ["/client/@user_ID"])
-    @reference(collection: "journeys")
-  journey_ID: ID!
+type UserPath {
+  id: String!
 
   materials(pagination: PaginationInput): MaterialConnection!
     @resolver(permissions: ["/client/@user_ID"])
-    @foreign_connection(collection: "materials", foreignField: "path_ID")
 
   # Profesyonel alan adı (örn: "Software Development", "Gastronomy")
   name: String!
@@ -344,49 +332,9 @@ type UserPath implements Node {
   # Aktif/Pasif durumu
   isActive: Boolean!
   isMain: Boolean!
-  # Tarihler
-  startedAt: DateTime!
-  lastStudyDate: DateTime
-
-  # İlerleme metrikleri
-  progress: PathProgress!
 
   type: PathType!
-
   profession: String
-}
-
-type PathLevel {
-  listening: Int!
-  reading: Int!
-  speaking: Int!
-  writing: Int!
-  grammar: Int!
-  vocabulary: Int!
-}
-
-# Profesyonel alandaki ilerleme metrikleri
-type PathProgress {
-  # Bu alandaki seviyesi
-  levels: PathLevel!
-
-  # Tamamlanan aktiviteler
-  completedActivities: Int!
-
-  # Zayıf alanlar (writing, speaking, etc.)
-  weakPoints: [String!]!
-
-  # Güçlü alanlar
-  strongPoints: [String!]!
-
-  # Kullanıcı hakkında gözlemler
-  observations: [String!]!
-}
-
-type UserPathConnection implements Connection {
-  pageInfo: PageInfo!
-  items: [UserPath!]!
-  groups: GroupInfo
 }
 
 # İçerik tipleri
@@ -398,11 +346,31 @@ enum MaterialType {
 }
 
 # İçerik durumu
-enum MaterialStatus {
+enum MaterialGenStatus {
   CREATING # Oluşturuluyor
-  PENDING # Henüz başlanmamış
-  COMPLETED # Tamamlanmış
   PREPARING # Hazırlanıyor
+  COMPLETED # Tamamlanmış
+  ERROR # Hata
+}
+
+enum MaterialCompStatus {
+  NOT_STARTED # Henüz başlanmamış
+  COMPLETED # Tamamlanmış
+  ANALYZING # Analiz ediliyor
+  ERROR # Hata
+}
+
+enum MaterialConvStatus {
+  NOT_STARTED # Henüz başlanmamış
+  COMPLETED # Tamamlanmış
+  PENDING # Beklemede
+}
+
+enum MaterialFeedbackStatus {
+  NOT_STARTED # Henüz başlanmamış
+  GENERATING # Oluşturuluyor
+  COMPLETED # Tamamlanmış
+  ERROR # Hata
 }
 
 scalar LinguisticUnit
@@ -412,25 +380,23 @@ scalar LinguisticUnitSet
 type Material implements Node {
   id: ID!
 
+  pathID: String
+
   # Hangi journey'ye ait
   journey: Journey!
     @resolver(permissions: ["/client/@user_ID"])
     @reference(collection: "journeys")
   journey_ID: ID!
 
-  # Eğer bir profesyonel alana özel içerikse
-  path: UserPath!
-    @resolver(permissions: ["/client/@user_ID"])
-    @reference(collection: "user_paths")
-  path_ID: ID!
-
   user: User!
     @resolver(permissions: ["/client/@user_ID"])
     @reference(collection: "users")
   user_ID: ID!
 
-  # İçeriğin durumu
-  status: MaterialStatus!
+  genStatus: MaterialGenStatus!
+  compStatus: MaterialCompStatus!
+  convStatus: MaterialConvStatus!
+  feedbackStatus: MaterialFeedbackStatus!
 
   # Tarihler
   createdAt: DateTime!
@@ -447,7 +413,7 @@ type Material implements Node {
 
   aiFeedbacks(pagination: PaginationInput): AIFeedbackConnection!
     @resolver(permissions: ["/client/@user_ID"])
-    @foreign_connection(collection: "ai-feedback", foreignField: "material_ID")
+    @foreign_connection(collection: "ai_feedback", foreignField: "material_ID")
 
   unseenAiFeedbacks: Int! @resolver(permissions: ["/client/@user_ID"])
 
@@ -492,7 +458,6 @@ type UserAnswerConnection implements Connection {
 type MaterialMetadata {
   title: String!
   description: String!
-  avatar: Avatar!
   estimatedDuration: Int # dakika cinsinden
   focusAreas: [String!]! # writing, speaking, etc.
   focusSkills: [String!]! # listening, reading, etc.
@@ -532,7 +497,7 @@ type QuizDetails implements MaterialDetails {
 }
 
 enum QuizPreludeItemType {
-  STORY
+  TEXT
   PICTURE
   AUDIO
 }
@@ -718,7 +683,7 @@ type UserDoc implements Node {
 
   template: UserDocTemplate!
     @resolver(permissions: ["/client/@user_ID"])
-    @reference(collection: "doc-template")
+    @reference(collection: "doc_templates")
 }
 
 type UserDocTemplate implements Node {
@@ -731,5 +696,21 @@ type UserDocTemplate implements Node {
 type UserDocConnection implements Connection {
   pageInfo: PageInfo!
   items: [UserDoc!]!
+  groups: GroupInfo
+}
+
+type ModelSet implements Node {
+  id: ID!
+  name: String!
+  description: String!
+  chatModel: String!
+  ttsModel: String!
+  sttModel: String!
+  imgModel: String!
+}
+
+type ModelSetConnection implements Connection {
+  pageInfo: PageInfo!
+  items: [ModelSet!]!
   groups: GroupInfo
 }

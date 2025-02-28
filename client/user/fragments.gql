@@ -28,7 +28,6 @@ fragment DetailedPath on UserPath {
 fragment MaterialMetadata on MaterialMetadata {
   title
   description
-  avatar
   estimatedDuration
   focusAreas
   focusSkills
@@ -36,14 +35,25 @@ fragment MaterialMetadata on MaterialMetadata {
 
 fragment Material on Material {
   id
+  pathID
   metadata {
     ...MaterialMetadata
   }
   type
-  status
+  genStatus
+  compStatus
+  convStatus
+  feedbackStatus
   createdAt
   completedAt
   unseenAiFeedbacks
+}
+
+fragment MaterialStatusses on Material {
+  genStatus
+  compStatus
+  convStatus
+  feedbackStatus
 }
 
 fragment AIFeedbackPart on AIFeedbackPart {
@@ -239,4 +249,10 @@ fragment UserDoc on UserDoc {
   template {
     ...UserDocTemplate
   }
+}
+
+fragment ModelSet on ModelSet {
+  id
+  name
+  description
 }

@@ -16,17 +16,25 @@ query GetJourneyDetailed($id: ID!) {
   }
 }
 
-query GetPath($id: ID!) {
-  user {
-    path(id: $id) {
-      ...DetailedPath
-    }
-  }
-}
+# query GetPath($id: ID!) {
+#   user {
+#     path(id: $id) {
+#       ...DetailedPath
+#     }
+#   }
+# }
 
-query GetPathMaterials($id: ID!, $pagination: PaginationInput) {
+query GetPathMaterials(
+  $journeyId: ID!
+  $pathID: String!
+  $pagination: PaginationInput
+) {
   user {
-    path_materials(id: $id, pagination: $pagination) {
+    path_materials(
+      journeyId: $journeyId
+      pathID: $pathID
+      pagination: $pagination
+    ) {
       items {
         ...Material
       }
@@ -49,22 +57,6 @@ query GetMaterialDetails($id: ID!) {
   user {
     material(id: $id) {
       ...DetailedMaterial
-    }
-  }
-}
-fragment InitialPathResponse on InitialPathResponse {
-  path {
-    ...DetailedPath
-  }
-  materials {
-    ...DetailedMaterial
-  }
-}
-
-query GetInitialPath($journeyId: ID!) {
-  user {
-    initial_path(journeyId: $journeyId) {
-      ...InitialPathResponse
     }
   }
 }
@@ -107,10 +99,20 @@ query GetJourneyDocs($journeyId: ID!, $pagination: PaginationInput) {
   }
 }
 
-query GetMaterialFeedbacks($pathId: ID!, $materialId: ID!) {
+query GetMaterialFeedbacks($materialId: ID!) {
   user {
-    material_feedbacks(pathId: $pathId, materialId: $materialId) {
+    material_feedbacks(materialId: $materialId) {
       ...AIFeedback
+    }
+  }
+}
+
+query GetModelSets {
+  user {
+    model_sets {
+      items {
+        ...ModelSet
+      }
     }
   }
 }

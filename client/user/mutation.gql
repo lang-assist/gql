@@ -4,9 +4,6 @@ mutation CreateJourney($input: CreateJourneyInput!) {
       journey {
         ...DetailedJourney
       }
-      path {
-        ...DetailedPath
-      }
       materials {
         ...DetailedMaterial
       }
@@ -28,23 +25,6 @@ mutation UpdateJourney($id: ID!, $input: UpdateJourneyInput!) {
   }
 }
 
-fragment StartInitialResponse on StartInitialResponse {
-  path {
-    ...DetailedPath
-  }
-  materials {
-    ...DetailedMaterial
-  }
-}
-
-mutation UnUnderstoodQuestions($journeyId: ID!, $pathId: ID!) {
-  user {
-    unUnderstoodQuestions(journeyId: $journeyId, pathId: $pathId) {
-      ...StartInitialResponse
-    }
-  }
-}
-
 mutation AnswerMaterial($input: AnswerMaterialInput!) {
   user {
     answer_material(input: $input) {
@@ -56,7 +36,15 @@ mutation AnswerMaterial($input: AnswerMaterialInput!) {
 mutation CreatePath($input: CreatePathInput!) {
   user {
     create_path(input: $input) {
-      ...DetailedPath
+      journey {
+        ...DetailedJourney
+      }
+      path {
+        ...DetailedPath
+      }
+      materials {
+        ...DetailedMaterial
+      }
     }
   }
 }
@@ -69,50 +57,50 @@ mutation AddUserInput($input: AddUserInputInput!) {
   }
 }
 
-mutation ClearConversation($materialId: ID!) {
-  user {
-    clear_conversation(materialId: $materialId)
-  }
-}
+# mutation ClearConversation($materialId: ID!) {
+#   user {
+#     clear_conversation(materialId: $materialId)
+#   }
+# }
 
-mutation RemoveConversationAssistant {
-  user {
-    remove_conversation_assistant
-  }
-}
+# mutation RemoveConversationAssistant {
+#   user {
+#     remove_conversation_assistant
+#   }
+# }
 
-mutation DeleteTemp($num: Int!) {
-  user {
-    delete_temp(num: $num)
-  }
-}
+# mutation DeleteTemp($num: Int!) {
+#   user {
+#     delete_temp(num: $num)
+#   }
+# }
 
-mutation ResetJourney($id: ID!) {
-  user {
-    reset_journey(id: $id)
-  }
-}
+# mutation ResetJourney($id: ID!) {
+#   user {
+#     reset_journey(id: $id)
+#   }
+# }
 
-mutation PrepareMaterial($materialId: ID!) {
-  user {
-    prepare_material(materialId: $materialId) {
-      ...DetailedMaterial
-    }
-  }
-}
+# mutation PrepareMaterial($materialId: ID!) {
+#   user {
+#     prepare_material(materialId: $materialId) {
+#       ...DetailedMaterial
+#     }
+#   }
+# }
 
-mutation RegenerateMaterial($materialId: ID!) {
-  user {
-    regenerate_material(materialId: $materialId) {
-      ...DetailedMaterial
-    }
-  }
-}
+# mutation RegenerateMaterial($materialId: ID!) {
+#   user {
+#     regenerate_material(materialId: $materialId) {
+#       ...DetailedMaterial
+#     }
+#   }
+# }
 
-mutation GenMaterial($input: GenMaterialInput!) {
-  user {
-    gen_material(input: $input) {
-      ...DetailedMaterial
-    }
-  }
-}
+# mutation GenMaterial($input: GenMaterialInput!) {
+#   user {
+#     gen_material(input: $input) {
+#       ...DetailedMaterial
+#     }
+#   }
+# }

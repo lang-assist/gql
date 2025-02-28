@@ -4,17 +4,12 @@ input CreateJourneyInput {
   to: SupportedLanguage!
   name: String!
   avatar: UploadingHsl!
-  model: String!
+  modelSet: ID!
 }
 
 input UpdateJourneyInput {
   name: String
   avatar: String
-}
-
-type InitialPathResponse {
-  path: UserPath!
-  materials: [Material!]!
 }
 
 input DocumentationInput {
@@ -26,15 +21,18 @@ input DocumentationInput {
 type UserQuery {
   my_journeys: JourneyConnection!
   journey(id: ID!): Journey
-  path(id: ID!): UserPath
-  path_materials(id: ID!, pagination: PaginationInput): MaterialConnection!
+  path_materials(
+    journeyId: ID!
+    pathID: String!
+    pagination: PaginationInput
+  ): MaterialConnection!
   material(id: ID!): Material
-  initial_path(journeyId: ID!): InitialPathResponse
   conversation_turns(materialId: ID!): [ConversationTurn!]!
   parsed_units(text: String!, journeyId: ID!): LinguisticUnitSet!
   documentation(input: DocumentationInput!): UserDoc!
   journey_docs(journeyId: ID!, pagination: PaginationInput): UserDocConnection!
   material_feedbacks(materialId: ID!): [AIFeedback!]!
+  model_sets: ModelSetConnection!
 }
 
 input CreateMaterialInput {
@@ -51,17 +49,6 @@ input CreatePathInput {
   journeyId: ID!
   type: PathType!
   profession: String
-}
-
-type StartInitialResponse {
-  path: UserPath!
-  materials: [Material!]!
-}
-
-type CreateJourneyResponse {
-  journey: Journey!
-  path: UserPath!
-  materials: [Material!]!
 }
 
 input StartConversationInput {
@@ -82,7 +69,7 @@ enum AnswerMaterialResponseNext {
 
 type AnswerMaterialResponse {
   next: AnswerMaterialResponseNext!
-  newPath: ID
+  newPath: String
   newMaterial: ID
 }
 
@@ -92,21 +79,27 @@ input GenMaterialInput {
   type: MaterialType!
 }
 
+type CreatePathResponse {
+  journey: Journey!
+  path: UserPath!
+  materials: [Material!]!
+}
+
+type CreateJourneyResponse {
+  journey: Journey!
+  materials: [Material!]!
+}
+
 type UserMutation {
   create_journey(input: CreateJourneyInput!): CreateJourneyResponse!
 
   delete_journey(id: ID!): Boolean! # unimplemented
   update_journey(id: ID!, input: UpdateJourneyInput!): Journey! # unimplemented
-  unUnderstoodQuestions(journeyId: ID!, pathId: ID!): StartInitialResponse!
-  create_path(input: CreatePathInput!): UserPath! # unimplemented
+  create_path(input: CreatePathInput!): CreatePathResponse!
+
   answer_material(input: AnswerMaterialInput!): AnswerMaterialResponse!
 
   add_user_input(input: AddUserInputInput!): ConversationTurn!
-
-  """
-  Delete template content.
-  """
-  delete_temp(num: Int!): Boolean!
 
   """
   Reset journey.
@@ -114,8 +107,6 @@ type UserMutation {
   reset_journey(id: ID!): Boolean!
 
   clear_conversation(materialId: ID!): Boolean!
-
-  remove_conversation_assistant: Boolean!
 
   prepare_material(materialId: ID!): Material!
 
